@@ -7,6 +7,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include <windows.h>
+#include <string>
 
 // Function prototypes
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int); 
@@ -19,6 +20,7 @@ HDC    hdc;                 // handle to device context
 TCHAR ch = ' ';             // character entered
 RECT rect;                  // rectangle structure
 PAINTSTRUCT ps;             // used in WM_PAINT
+std::string outputString = "";
 
 // Constants
 const char CLASS_NAME[]  = "Keyboard";
@@ -80,13 +82,18 @@ LRESULT WINAPI WinProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 case 0x0A:          // linefeed
                 case 0x0D:          // carriage return
                 case 0x1B:          // escape
-				case 0x20:          // space
+				//case 0x20:          // space
                     MessageBeep((UINT) -1);    // beep but do not display
                     return 0;
                 default:            // displayable character
-					//if (ch == ' ')
-					//	MessageBeep((UINT) -1);
-                    ch = (TCHAR) wParam;    // get the character
+					ch = (TCHAR) wParam;    // get the character
+					if (ch == ' ')
+					{	// Empty the string
+						outputString.clear();
+					} else {
+						if(outputString.length()<20)
+							outputString += ch;
+					}
                     InvalidateRect(hwnd, NULL, TRUE);    // force WM_PAINT
                     return 0;
             }
@@ -95,7 +102,10 @@ LRESULT WINAPI WinProc( HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam )
             hdc = BeginPaint(hwnd, &ps);    // get handle to device context
             GetClientRect(hwnd, &rect);     // get the window rectangle
             // Display the character
-            TextOut(hdc, rect.right/2, rect.bottom/2, &ch, 1);
+			for(int i=0;i<outputString.length();++i)
+			{
+				TextOut(hdc, rect.right/4+10*i, rect.bottom/2, &outputString.data()[i], 1);
+			}
             EndPaint(hwnd, &ps);
             return 0;
 
